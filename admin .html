@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - Dinhata Shop</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <div class="logo">Dinhata Shop</div>
+        <nav>
+            <a href="index.html">Home</a>
+            <a href="products.html">Products</a>
+            <a href="cart.html">Cart</a>
+            <a href="admin.html" style="color:#ffcc66;">Admin</a>
+        </nav>
+    </header>
+
+    <div class="admin-container">
+        <h2>Add New Product</h2>
+        <form class="admin-form" id="addProductForm">
+            <input type="text" id="pName" placeholder="Product Name" required>
+            <input type="number" id="pPrice" placeholder="Price" required>
+            <input type="text" id="pImage" placeholder="Image URL" required>
+            <input type="text" id="pCategory" placeholder="Category" required>
+            <button type="submit">Add Product</button>
+        </form>
+
+        <h2>Manage Products (Total: <span id="productCount">0</span>)</h2>
+        <div id="adminProductList">
+            <!-- Products will be listed here -->
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+    <script>
+        // Update product count
+        document.getElementById('productCount').textContent = shop.products.length;
+    </script>
+</body>
+</html>
