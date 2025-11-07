@@ -5,9 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dinhata Online Shop</title>
     <link rel="stylesheet" href="style.css">
-    <script src="navigation.js"></script>
+    <script src="script.js" defer></script>
 </head>
 <body>
+
     <header>
         <div class="logo">Dinhata Shop</div>
         <nav>
@@ -37,8 +38,8 @@
         </div>
 
         <h2 class="section-title">Popular Items</h2>
-        <div class="products" id="productsContainer">
-            <!-- Products will be loaded by JavaScript -->
+        <div class="products" id="homeProducts">
+            <!-- Home products auto-load -->
         </div>
     </main>
 
@@ -46,33 +47,24 @@
         <p>© 2025 Dinhata Online Shopping | Premium Version Products – Dinhata Shop</p>
     </footer>
 
-    <script src="script.js"></script>
     <script>
-        // Show only 3 products on homepage
-        function renderHomeProducts() {
-            const container = document.getElementById('productsContainer');
-            if (!container) return;
-            
+        document.addEventListener("DOMContentLoaded", () => {
+            const container = document.getElementById("homeProducts");
             const allProducts = getProducts();
-            const homeProducts = allProducts.slice(0, 3); // Show only first 3
-            
-            container.innerHTML = '';
-            homeProducts.forEach(p => {
-                container.innerHTML += `
-                    <div class="product">
-                        <img src="${p.img}" alt="${p.name}">
-                        <div class="info">
-                            <div class="title">${p.name}</div>
-                            <div class="price">৳ ${p.price}</div>
-                            <button class="add-btn" onclick="addToCart(${p.id})">Add to Cart</button>
-                        </div>
-                    </div>
-                `;
-            });
-        }
+            const homeProducts = allProducts.slice(0, 3);
 
-        // Initialize homepage
-        renderHomeProducts();
+            container.innerHTML = homeProducts.map(p => `
+                <div class="product">
+                    <img src="${p.img}" alt="${p.name}">
+                    <div class="info">
+                        <div class="title">${p.name}</div>
+                        <div class="price">৳ ${p.price}</div>
+                        <button class="add-btn" onclick="addToCart(${p.id})">Add to Cart</button>
+                    </div>
+                </div>
+            `).join('');
+        });
     </script>
+
 </body>
 </html>
