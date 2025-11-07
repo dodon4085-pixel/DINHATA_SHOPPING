@@ -46,29 +46,23 @@
 </div>
 
 <script>
-    // Load cart items
+    // ✅ Load cart items
     document.addEventListener("DOMContentLoaded", () => {
-        loadCheckoutList();
-    });
-
-    function loadCheckoutList() {
+        const cart = getCart();
         const container = document.getElementById("checkoutItems");
         const totalEl = document.getElementById("checkoutTotal");
 
-        const cart = getCart();
-
-        if (!cart || cart.length === 0) {
+        if (cart.length === 0) {
             container.innerHTML = "<p>Your cart is empty</p>";
             totalEl.textContent = 0;
             return;
         }
 
         let total = 0;
-
         container.innerHTML = cart.map(item => {
             total += item.price;
             return `
-                <div style="display:flex; justify-content:space-between; 
+                <div style="display:flex; justify-content:space-between;
                     margin:10px 0; padding:10px; background:#222; border-radius:5px;">
                     <div>${item.name}</div>
                     <div>৳${item.price}</div>
@@ -77,9 +71,9 @@
         }).join("");
 
         totalEl.textContent = total;
-    }
+    });
 
-    // Telegram Message Sender
+    // ✅ Send to Telegram
     function sendToTelegram(order) {
         const BOT_TOKEN = "8589527391:AAEF3bCeKx0J-y9dc0KHeJCOolzHLJjYVo4";
         const CHAT_ID = "7681046220";
@@ -101,7 +95,7 @@ ${order.items.map(i => `• ${i.name} - ৳${i.price}`).join("\n")}
 📝 Notes: ${order.notes || "None"}
         `;
 
-        fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+        return fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
             method: "POST",
             headers: {"Content-Type": "application/json"},
             body: JSON.stringify({
@@ -109,49 +103,61 @@ ${order.items.map(i => `• ${i.name} - ৳${i.price}`).join("\n")}
                 text: message,
                 parse_mode: "Markdown"
             })
-        })
-        .then(res => res.json())
-        .then(data => console.log("Telegram response:", data))
-        .catch(err => console.error("Telegram error:", err));
+        });
     }
 
-    // Form Submission
+    // ✅ Send to Google Sheet
+    function sendToGoogleSheet(order) {
+        const SHEET_URL = "https://script.google.com/macros/s/AKfycbxF4aEFiGBLl4RV0lsT8CFnX36VIblTRg2i1wSg_wLHfC6jHSqhltXHCZSSxD9Yur-h_Q/exec";
+
+        return fetch(SHEET_URL, {
+            method: "POST",
+            body: JSON.stringify(order),
+            headers: {"Content-Type": "application/json"}
+        });
+    }
+
+    // ✅ Form Submit
     document.getElementById("checkoutForm").addEventListener("submit", function(e) {
         e.preventDefault();
 
         const cart = getCart();
-        if (!cart || cart.length === 0) {
+        if (cart.length === 0) {
             alert("Your cart is empty!");
             return;
         }
 
         const orderData = {
             id: "DIN" + Date.now(),
-            name: cName.value,
-            phone: cPhone.value,
-            address: cAddress.value,
-            notes: cNotes.value,
+            name: document.getElementById('cName').value,
+            phone: document.getElementById('cPhone').value,
+            address: document.getElementById('cAddress').value,
+            notes: document.getElementById('cNotes').value,
             items: cart,
             total: cart.reduce((sum, item) => sum + item.price, 0),
             date: new Date().toLocaleString("bn-BD")
         };
 
-        // Send to Telegram
-        sendToTelegram(orderData);
-
-        // Save locally
-        localStorage.setItem("dinhata_last_order", JSON.stringify(orderData));
-
-        // Clear cart
-        localStorage.removeItem("dinhata_cart");
-
-        // Redirect to success page
-        window.location.href = "order-success.html";
+        // ✅ Send to Telegram + Google Sheet
+        Promise.all([
+            sendToTelegram(orderData),
+            sendToGoogleSheet(orderData)
+        ]).then(() => {
+            localStorage.setItem("dinhata_last_order", JSON.stringify(orderData));
+            localStorage.removeItem("dinhata_cart");
+            window.location.href = "order-success.html";
+        }).catch(error => {
+            console.error("Error placing order:", error);
+            alert("Order placed but there was an issue with notifications.");
+            localStorage.setItem("dinhata_last_order", JSON.stringify(orderData));
+            localStorage.removeItem("dinhata_cart");
+            window.location.href = "order-success.html";
+        });
     });
 
-    // Dummy getCart function (load from localStorage)
+    // ✅ Get cart from localStorage
     function getCart() {
-        return JSON.parse(localStorage.getItem("dinhata_cart") || "[]");
+        return JSON.parse(localStorage.getItem("dinhata_cart")) || [];
     }
 </script>
 
