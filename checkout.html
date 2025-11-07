@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Checkout - Dinhata Shop</title>
     <link rel="stylesheet" href="style.css">
-    <script src="script.js" defer></script>
 </head>
 <body>
 
@@ -46,10 +45,13 @@
 </div>
 
 <script>
-    document.addEventListener("DOMContentLoaded", () => {
-        loadCheckoutList();
-    });
+    // --- Get Cart from LocalStorage ---
+    function getCart() {
+        const cart = localStorage.getItem("dinhata_cart");
+        return cart ? JSON.parse(cart) : [];
+    }
 
+    // --- Load Checkout Items ---
     function loadCheckoutList() {
         const container = document.getElementById("checkoutItems");
         const totalEl = document.getElementById("checkoutTotal");
@@ -78,8 +80,52 @@
         totalEl.textContent = total;
     }
 
+    // --- Send Order to Telegram ---
+    function sendToTelegram(order) {
+        const BOT_TOKEN = "8589527391:AAEF3bCeKx0J-y9dc0KHeJCOolzHLJjYVo4"; // তোমার নতুন token
+        const CHAT_ID = "7681046220"; // তোমার chat id
+
+        const message = `
+📦 *New Order Received!*
+-------------------------
+🆔 Order ID: ${order.id}
+👤 Name: ${order.name}
+📞 Phone: ${order.phone}
+📍 Address: ${order.address}
+
+💰 Total: ৳${order.total}
+📅 Date: ${order.date}
+
+🛒 *Items:*
+${order.items.map(i => `• ${i.name} - ৳${i.price}`).join("\n")}
+
+📝 Notes: ${order.notes || "None"}
+        `;
+
+        fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({
+                chat_id: CHAT_ID,
+                text: message,
+                parse_mode: "Markdown"
+            })
+        });
+    }
+
+    // --- DOM Loaded ---
+    document.addEventListener("DOMContentLoaded", () => {
+        loadCheckoutList();
+    });
+
+    // --- Form Submission ---
     document.getElementById("checkoutForm").addEventListener("submit", function(e) {
         e.preventDefault();
+
+        const cName = document.getElementById("cName");
+        const cPhone = document.getElementById("cPhone");
+        const cAddress = document.getElementById("cAddress");
+        const cNotes = document.getElementById("cNotes");
 
         const cart = getCart();
         if (cart.length === 0) {
@@ -98,10 +144,16 @@
             date: new Date().toLocaleString("bn-BD")
         };
 
+        // --- Send to Telegram ---
+        sendToTelegram(orderData);
+
+        // --- Save order locally ---
         localStorage.setItem("dinhata_last_order", JSON.stringify(orderData));
 
+        // --- Clear cart ---
         localStorage.removeItem("dinhata_cart");
 
+        // --- Redirect to success page ---
         window.location.href = "order-success.html";
     });
 </script>
