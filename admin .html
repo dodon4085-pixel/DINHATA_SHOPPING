@@ -5,36 +5,40 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Panel - Dinhata Shop</title>
     <link rel="stylesheet" href="style.css">
+    <script src="script.js" defer></script>
+
     <style>
         .admin-container {
             max-width: 800px;
-            margin: 100px auto;
+            margin: 120px auto;
             padding: 20px;
         }
         .admin-form {
             background: #1a1a1a;
-            padding: 30px;
-            border-radius: 16px;
-            margin-bottom: 30px;
+            padding: 25px;
+            border-radius: 14px;
+            margin-bottom: 25px;
+            border: 1px solid #333;
         }
         .admin-form input {
             width: 100%;
             padding: 12px;
-            margin: 10px 0;
+            margin: 8px 0;
             border-radius: 8px;
-            border: 1px solid #333;
+            border: 1px solid #444;
             background: #0d0d0d;
             color: white;
         }
         .admin-form button {
+            width: 100%;
+            margin-top: 10px;
+            padding: 12px;
             background: #ffcc66;
             color: #000;
-            padding: 12px 30px;
             border: none;
-            border-radius: 8px;
             font-weight: 700;
+            border-radius: 8px;
             cursor: pointer;
-            margin-top: 10px;
         }
         .product-item {
             display: flex;
@@ -42,166 +46,125 @@
             align-items: center;
             background: #222;
             padding: 15px;
-            margin: 10px 0;
             border-radius: 8px;
+            margin: 10px 0;
         }
         .delete-btn {
             background: #ff4444;
-            color: white;
             border: none;
-            padding: 8px 15px;
+            color: white;
+            padding: 8px 12px;
             border-radius: 5px;
             cursor: pointer;
+        }
+        #statusMessage {
+            background: #222;
+            padding: 10px;
+            text-align: center;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            border: 1px solid #444;
         }
     </style>
 </head>
 <body>
-    <header>
-        <div class="logo">Dinhata Shop</div>
-        <nav>
-            <a href="index.html">Home</a>
-            <a href="products.html">Products</a>
-            <a href="cart.html">Cart</a>
-            <a href="admin.html" style="color:#ffcc66;">Admin</a>
-        </nav>
-    </header>
 
-    <div class="admin-container">
-        <h2>Add New Product</h2>
-        <form class="admin-form" id="addProductForm">
-            <input type="text" id="pName" placeholder="Product Name" required>
-            <input type="number" id="pPrice" placeholder="Price" required>
-            <input type="text" id="pImage" placeholder="Image URL" required>
-            <input type="text" id="pCategory" placeholder="Category" required>
-            <button type="submit">Add Product</button>
-        </form>
+<header>
+    <div class="logo">Dinhata Shop</div>
+    <nav>
+        <a href="index.html">Home</a>
+        <a href="products.html">Products</a>
+        <a href="cart.html">Cart</a>
+        <a href="admin.html" style="color:#ffcc66;">Admin</a>
+    </nav>
+</header>
 
-        <h2>Manage Products</h2>
-        <div id="adminProductList">
-            <!-- Products will be listed here -->
-        </div>
-    </div>
+<div class="admin-container">
 
-    <script>
-        // Simple standalone admin functionality
-        function getProducts() {
-            try {
-                const products = localStorage.getItem('dinhata_products');
-                if (products) {
-                    return JSON.parse(products);
-                }
-            } catch (e) {
-                console.error('Error loading products:', e);
-            }
-            
-            // Default products if none exist
-            return [
-                {
-                    id: 1,
-                    name: "Stylish Men's T-Shirt",
-                    price: 299,
-                    img: "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400",
-                    cat: "clothing"
-                },
-                {
-                    id: 2,
-                    name: "Premium Ladies Kurti",
-                    price: 480,
-                    img: "https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=400",
-                    cat: "clothing"
-                },
-                {
-                    id: 3,
-                    name: "Wireless Earbuds",
-                    price: 650,
-                    img: "https://images.unsplash.com/photo-1606220945770-b5b6c2c55bf1?w=400",
-                    cat: "electronics"
-                }
-            ];
-        }
+    <div id="statusMessage">Admin Panel Ready</div>
 
-        function saveProducts(products) {
-            try {
-                localStorage.setItem('dinhata_products', JSON.stringify(products));
-            } catch (e) {
-                console.error('Error saving products:', e);
-            }
-        }
+    <h2>Add New Product</h2>
 
-        // Admin functions
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('Admin page loaded');
-            
-            const addForm = document.getElementById('addProductForm');
-            if (addForm) {
-                addForm.addEventListener('submit', function(e) {
-                    e.preventDefault();
-                    console.log('Form submitted');
-                    
-                    const newProduct = {
-                        id: Date.now(),
-                        name: document.getElementById('pName').value,
-                        price: parseInt(document.getElementById('pPrice').value),
-                        img: document.getElementById('pImage').value,
-                        cat: document.getElementById('pCategory').value
-                    };
+    <form class="admin-form" id="addProductForm">
+        <input type="text" id="pName" placeholder="Product Name" required>
+        <input type="number" id="pPrice" placeholder="Price" required>
+        <input type="text" id="pImage" placeholder="Image URL" required>
+        <input type="text" id="pCategory" placeholder="Category" required>
+        <button type="submit">Add Product</button>
+    </form>
 
-                    const products = getProducts();
-                    products.push(newProduct);
-                    saveProducts(products);
-                    
-                    alert('✅ Product Added Successfully!');
-                    addForm.reset();
-                    loadAdminProducts();
-                });
-            }
-            
+    <h2>Manage Products (<span id="productCount">0</span>)</h2>
+    <div id="adminProductList">Loading...</div>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        updateStatus("Admin Panel Loaded");
+
+        loadAdminProducts();
+
+        document.getElementById("addProductForm").addEventListener("submit", (e) => {
+            e.preventDefault();
+
+            const newProduct = {
+                id: Date.now(),
+                name: document.getElementById("pName").value,
+                price: parseInt(document.getElementById("pPrice").value),
+                img: document.getElementById("pImage").value,
+                cat: document.getElementById("pCategory").value
+            };
+
+            const products = getProducts();
+            products.push(newProduct);
+            saveProducts(products);
+
+            updateStatus("✅ Product Added Successfully!");
+            e.target.reset();
             loadAdminProducts();
         });
+    });
 
-        function loadAdminProducts() {
-            const container = document.getElementById('adminProductList');
-            if (!container) {
-                console.error('Admin product list container not found');
-                return;
-            }
-            
-            const products = getProducts();
-            console.log('Loading products:', products);
-            
-            if (products.length === 0) {
-                container.innerHTML = '<p>No products found. Add your first product!</p>';
-                return;
-            }
-            
-            container.innerHTML = products.map(product => `
-                <div class="product-item">
+    function updateStatus(msg) {
+        document.getElementById("statusMessage").innerText = msg;
+    }
+
+    function loadAdminProducts() {
+        const container = document.getElementById("adminProductList");
+        const count = document.getElementById("productCount");
+        const products = getProducts();
+
+        count.innerText = products.length;
+
+        if (products.length === 0) {
+            container.innerHTML = `<p>No products found.</p>`;
+            return;
+        }
+
+        container.innerHTML = products.map(p => `
+            <div class="product-item">
+                <div style="display:flex; align-items:center;">
+                    <img src="${p.img}" width="60" style="border-radius:5px; margin-right:12px;">
                     <div>
-                        <img src="${product.img}" alt="${product.name}" width="60" style="border-radius:5px; margin-right:10px;">
-                        <div style="display:inline-block; vertical-align:top;">
-                            <b>${product.name}</b><br>
-                            ৳${product.price} | ${product.cat}
-                        </div>
+                        <b>${p.name}</b><br>
+                        ৳${p.price} | ${p.cat}
                     </div>
-                    <button class="delete-btn" onclick="deleteProduct(${product.id})">Delete</button>
                 </div>
-            `).join('');
-        }
+                <button class="delete-btn" onclick="deleteProduct(${p.id})">Delete</button>
+            </div>
+        `).join('');
+    }
 
-        function deleteProduct(id) {
-            if (confirm('Are you sure you want to delete this product?')) {
-                const products = getProducts();
-                const updatedProducts = products.filter(p => p.id !== id);
-                saveProducts(updatedProducts);
-                loadAdminProducts();
-                alert('Product deleted successfully!');
-            }
-        }
+    function deleteProduct(id) {
+        if (!confirm("Delete this product?")) return;
 
-        // Initialize if no products exist
-        if (!localStorage.getItem('dinhata_products')) {
-            saveProducts(getProducts());
-        }
-    </script>
+        let products = getProducts();
+        products = products.filter(p => p.id !== id);
+
+        saveProducts(products);
+        updateStatus("❌ Product Deleted");
+        loadAdminProducts();
+    }
+</script>
+
 </body>
 </html>
